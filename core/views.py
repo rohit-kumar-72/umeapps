@@ -7,20 +7,79 @@ from .models import AnalysisLog
 import json
 # Create your views here.
 
+TONE_LIST = [
+    "Happy", "Sad", "Angry", "Frustrated", "Excited", "Calm",
+    "Bored", "Anxious", "Confused", "Curious", "Motivated", "Tired"
+]
+TONE_TO_INTENT_MAP = {
+    "Bored": "Entertainment",
+    "Happy": "Celebrate",
+    "Sad": "Seek Support",
+    "Angry": "Complaint",
+    "Frustrated": "Ask Question",
+    "Excited": "Order Food",
+    "Calm": "Casual Inquiry",
+    "Anxious": "Seek Support",
+    "Confused": "Ask Question",
+    "Curious": "Learn Something",
+    "Motivated": "Plan Goals",
+    "Tired": "Health Advice",
+    "Unknown":"Ask Question"
+}
 
 ACTION_MAP = {
-    "Order Food": [
-        {"action_code": "FIND_NEARBY_PIZZERIA", "display_text": "Find nearby pizza restaurants"},
-        {"action_code": "PLACE_ONLINE_ORDER", "display_text": "Place an online pizza order"},
-        {"action_code": "FIND_RECIPE", "display_text": "Find pizza recipes"}
+    "Entertainment": [
+        {"action_code": "WATCH_VIDEO", "display_text": "Watch a trending video"},
+        {"action_code": "PLAY_GAME", "display_text": "Play an online game"},
+        {"action_code": "LISTEN_MUSIC", "display_text": "Listen to music"}
+    ],
+    "Celebrate": [
+        {"action_code": "ORDER_CAKE", "display_text": "Order a celebration cake"},
+        {"action_code": "BOOK_RESTAURANT", "display_text": "Book a restaurant"},
+        {"action_code": "SEND_GIFT", "display_text": "Send a gift to someone"}
+    ],
+    "Seek Support": [
+        {"action_code": "CONTACT_SUPPORT", "display_text": "Contact support"},
+        {"action_code": "CHAT_THERAPIST", "display_text": "Chat with a therapist"},
+        {"action_code": "JOIN_COMMUNITY", "display_text": "Join a support community"}
+    ],
+    "Complaint": [
+        {"action_code": "FILE_COMPLAINT", "display_text": "File a complaint"},
+        {"action_code": "ESCALATE_ISSUE", "display_text": "Escalate to management"},
+        {"action_code": "LEAVE_FEEDBACK", "display_text": "Leave negative feedback"}
     ],
     "Ask Question": [
-        {"action_code": "ASK_HELP", "display_text": "Ask for help"},
         {"action_code": "SEARCH_FAQ", "display_text": "Search FAQ"},
-        {"action_code": "CONTACT_SUPPORT", "display_text": "Contact support"}
+        {"action_code": "ASK_AGENT", "display_text": "Talk to a support agent"},
+        {"action_code": "POST_FORUM", "display_text": "Post a question on community forum"}
     ],
-    # Add more intents as needed
+    "Order Food": [
+        {"action_code": "ORDER_PIZZA", "display_text": "Order a pizza"},
+        {"action_code": "FIND_NEARBY_FOOD", "display_text": "Find nearby food options"},
+        {"action_code": "VIEW_MENU", "display_text": "Browse restaurant menus"}
+    ],
+    "Casual Inquiry": [
+        {"action_code": "DAILY_FACT", "display_text": "Get a daily fact"},
+        {"action_code": "NEWS_HEADLINES", "display_text": "View news headlines"},
+        {"action_code": "CHECK_WEATHER", "display_text": "Check today's weather"}
+    ],
+    "Learn Something": [
+        {"action_code": "WATCH_TUTORIAL", "display_text": "Watch a tutorial"},
+        {"action_code": "READ_ARTICLE", "display_text": "Read an article"},
+        {"action_code": "ENROLL_COURSE", "display_text": "Enroll in a free course"}
+    ],
+    "Plan Goals": [
+        {"action_code": "SET_REMINDER", "display_text": "Set a reminder"},
+        {"action_code": "CREATE_TODO", "display_text": "Create a to-do list"},
+        {"action_code": "SCHEDULE_EVENT", "display_text": "Schedule an event"}
+    ],
+    "Health Advice": [
+        {"action_code": "SLEEP_TIPS", "display_text": "Tips for better sleep"},
+        {"action_code": "EXERCISE_ROUTINE", "display_text": "Start a light exercise routine"},
+        {"action_code": "MENTAL_HEALTH_TIPS", "display_text": "Mental health guidance"}
+    ]
 }
+
 
 
 @api_view(['POST'])
@@ -36,9 +95,12 @@ def analyze(request):
     chat = client.chats.create(model="gemini-2.0-flash")
 
     prompt = (
-        "Analyze the following user message. "
-        "Return a JSON object with fields 'tone' (e.g., Happy, Urgent), 'intent' (e.g., Order Food, Ask Question) and 'actions' (e.g., buy online, this is not a good option). "
-        "Respond ONLY with the JSON object. "
+        "Analyze the following user message. Choose the tone from this list:\n"
+        f"{TONE_LIST}\n"
+        "Then choose an appropriate intent category based on the tone using the following mapping:\n"
+        f"{json.dumps(TONE_TO_INTENT_MAP)}\n"
+        "Return a JSON object with fields 'tone', 'intent', and 'actions' (brief description).\n"
+        "Only return the JSON.\n"
         f"Message: {user_text}"
     )
 
